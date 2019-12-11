@@ -1,0 +1,86 @@
+plugins {
+    id 'org.springframework.boot' version '2.2.1.RELEASE'
+    id 'io.spring.dependency-management' version '1.0.8.RELEASE'
+    id 'java'
+}
+
+group = 'com.springbootApp'
+version = '0.0.1-SNAPSHOT'
+sourceCompatibility = '1.8'
+
+repositories {
+    mavenCentral()
+}
+
+dependencies {
+    implementation 'org.springframework.boot:spring-boot-starter-actuator'
+    implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+    implementation 'org.springframework.boot:spring-boot-starter-web'
+    runtimeOnly 'com.h2database:h2'
+    compileOnly 'org.projectlombok:lombok:1.18.10'
+    annotationProcessor 'org.projectlombok:lombok:1.18.10'
+    compile group: 'javax.validation', name: 'validation-api', version: '2.0.0.Final'
+    testImplementation('org.springframework.boot:spring-boot-starter-test') {
+        exclude group: 'org.junit.vintage', module: 'junit-vintage-engine'
+    }
+    compile 'org.slf4j:slf4j-api:1.7.5'
+    testCompile('junit:junit:4.12') {
+        exclude group: 'org.hamcrest'
+    }
+    testCompile 'org.hamcrest:hamcrest-library:1.3'
+}
+
+test {
+    useJUnitPlatform()
+}
+
+//apply plugin: 'jacoco' //apply jacoco plugin for using jacoco
+//
+//jacoco {
+//    toolVersion = "0.7.7.201606060606" //jacoco version
+//    reportsDir = file("$buildDir/reports/jacoco") //default directory where jacoco generates test reports
+//}
+//
+////if you want to use custom report then uncomment below task //use command "gradle build jacocoTestReport" to generate reports using below task
+//jacocoTestReport {
+//    reports {
+//            xml.enabled  true
+//            csv.enabled true
+//            html.enabled true
+//          //  html.destination = file("$buildDir/jacocoHtml")
+//    }
+//}
+//
+//
+////build success even when test failure occurs
+//test {
+//    ignoreFailures = true
+//}
+apply plugin: "jacoco"
+
+task jacocoRootReport(type: JacocoReport, group: 'Test Reporting') {
+    description = 'Generates aggregate report from all subprojects.'
+
+    def includeFilter = ['**/build/intermediates/javac/**/classes/**/*.class']
+    def excludeFilter = ['**/build/intermediates/javac/*Test/**/*.class']
+    def classTree = fileTree(dir: "${rootProject.projectDir}", includes: includeFilter, excludes: excludeFilter)
+    def sourceTree = fileTree(dir: "${rootProject.projectDir}", includes: ['**/src/main/java/**/*.*'])
+    def executionTree = fileTree(dir: "${rootProject.projectDir}", includes: ['**/build/jacoco/*.exec'])
+
+    classDirectories.from = files([classTree])
+    sourceDirectories.from = files([sourceTree])
+    executionData.from = files([executionTree])
+
+    reports {
+        xml.enabled true
+        html.enabled true
+        html.destination file("${rootProject.projectDir}/build/reports/jacoco/report.html")
+        csv.enabled false
+    }
+}
+
+tasks.withType(Test) {
+    jacoco.includeNoLocationClasses = true
+}
+
+
